@@ -22,7 +22,7 @@ class Transdetail extends CI_Controller
 	{	
 		# set header
 		http_response_code(200);
-        // header('Content-Type: application/json');
+        header('Content-Type: application/json');
 
         # set message
         $result = array(

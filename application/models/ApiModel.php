@@ -51,7 +51,9 @@ class ApiModel extends CI_Model {
         $field1 .= "jumlah_sample AS samples_count, ";
         $field1 .= "CASE WHEN wadah_sample = 0 THEN 'Plastik' ELSE 'Gelas' END AS samples_container, ";
         $field1 .= "CASE WHEN pengambilan_sample = 0 THEN 'Diantar' ELSE 'Diambil' END AS sampling, ";
-        $field1 .= "CASE WHEN lunas = 0 THEN 'Belum lunas' ELSE 'Lunas' END AS payment_status";
+        $field1 .= "CASE WHEN lunas = 0 THEN 'Belum lunas' ELSE 'Lunas' END AS payment_status, ";
+        $field1 .= "dokter_rujukan AS referralDoctor";
+        
 
         # field yg tampil dari tabel customer
         $field2 = "CASE WHEN type_customer = 0 THEN 'Institusi' ELSE 'Perorangan' END AS customer_type , ";
@@ -64,7 +66,7 @@ class ApiModel extends CI_Model {
         $field2 .= "kecamatan AS sub-district, ";
         $field2 .= "desa AS village, ";
         $field2 .= "alamat_customer AS address, ";
-        $field2 .= "bidang_usaha AS business_field2s, ";
+        $field2 .= "bidang_usaha AS business_field, ";
         $field2 .= "nama_pic AS pic_name, ";
         $field2 .= "alamat_pic AS pic_address, ";
         $field2 .= "tanggal_register AS register_date, ";
@@ -169,6 +171,41 @@ class ApiModel extends CI_Model {
             'trans' => $transaksi,
             'sample' => $sample,
         );
+    }
+
+    public function update($_data)
+    {
+        $rows = 0;
+
+        # start DB transaction
+        $this->db->trans_begin();
+
+            $data = array_chunk($_data, 1);
+            foreach ($data as $key => $item) {
+                # code...
+                $this->db->update_batch($this->table3, $item, 'id');
+                $rows = $rows + $this->db->affected_rows();
+            }
+            $lala = array('sts'=>TRUE, 'jml'=> $rows);
+        
+        if ($this->db->trans_status() === FALSE) {
+            # Something went wrong.
+            $this->db->trans_rollback();
+            return array('sts'=>FALSE);
+        } else {
+            # Everything is Perfect. 
+            # Committing data to the database.
+            if ($rows =! count($_data)) {
+                $this->db->trans_rollback();
+                return false;
+            }
+
+            $this->db->trans_commit();
+            return $lala;
+        }
+
+        # Complete DB transaction
+        $this->db->trans_off();
     }
 
 }
